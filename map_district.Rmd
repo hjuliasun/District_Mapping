@@ -1,0 +1,48 @@
+---
+title: "map_district"
+output: html_document
+date: "2023-09-16"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(tidyverse)
+library(leaflet)
+library(tidycensus)
+library(viridis)
+library(sf)
+library(knitr)
+library(moderndive)
+
+```
+
+```{r}
+districts_shp <-st_read("/Users/hannahsun/Desktop/work/2023_Fall/ECON_SS/districtShapes/districts097.shp")
+districts_dbf <- st_read("/Users/hannahsun/Desktop/work/2023_Fall/ECON_SS/districtShapes/districts097.dbf")
+districts_prj <- st_read("/Users/hannahsun/Desktop/work/2023_Fall/ECON_SS/districtShapes/districts097.prj")
+districts_shx <- st_read("/Users/hannahsun/Desktop/work/2023_Fall/ECON_SS/districtShapes/districts097.shx")
+
+```
+
+
+
+```{r}
+leaflet() %>%
+  setView(lat = 42.3601, lng = -71.0589, zoom = 10) %>% 
+  addProviderTiles("CartoDB.Positron") %>%
+  addPolygons(data = districts,
+              # fillColor = ~pal_redlining(holc_grade), 
+              stroke = FALSE,
+              weight = 0.5,
+              fillOpacity = 0.5) 
+  # addCircleMarkers(data = districts,
+  #                  fillColor = ~pal_tri(total_on_site_emissions),
+  #                  stroke = TRUE,
+  #                  weight = 0.5,
+  #                  radius = 5,
+  #                  fillOpacity = 0.5) %>%
+  # addLegend(data = redlining, title = "HOLC Grade", pal = pal_redlining, values=~holc_grade)%>%
+  # addLegend(data = tri_facility_on_site_totals_county, title = "Total On site Emissions", pal = pal_tri, values=~total_on_site_emissions)
+```
+
