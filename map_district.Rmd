@@ -5,44 +5,192 @@ date: "2023-09-16"
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
 
-library(tidyverse)
+
+# knitr::opts_chunk$set(echo = TRUE)
+
+require(tidyverse)
 library(leaflet)
 library(tidycensus)
 library(viridis)
-library(sf)
+require(sf)
 library(knitr)
 library(moderndive)
+require(ggplot2)
+require(ggmap)
+library(maps)
+library(RColorBrewer)  # You need the RColorBrewer library for palettes
 
 ```
 
 ```{r}
-districts_shp <-st_read("/Users/hannahsun/Desktop/work/2023_Fall/ECON_SS/districtShapes/districts097.shp")
-districts_dbf <- st_read("/Users/hannahsun/Desktop/work/2023_Fall/ECON_SS/districtShapes/districts097.dbf")
-districts_prj <- st_read("/Users/hannahsun/Desktop/work/2023_Fall/ECON_SS/districtShapes/districts097.prj")
-districts_shx <- st_read("/Users/hannahsun/Desktop/work/2023_Fall/ECON_SS/districtShapes/districts097.shx")
+get_congress_map <- function(cong=113) {
+  tmp_file <- tempfile()
+  tmp_dir  <- tempdir()
+  zp <- sprintf("http://cdmaps.polisci.ucla.edu/shp/districts%03i.zip",cong)
+  download.file(zp, tmp_file)
+  unzip(zipfile = tmp_file, exdir = tmp_dir)
+  fpath <- paste(tmp_dir, sprintf("districtShapes/districts%03i.shp",cong), sep = "/")
+  st_read(fpath)
+}
+```
+
+```{r}
+cd114 <- get_congress_map(114)
 
 ```
 
-
+```{r}
+cd114_nj <- cd114 %>% 
+            filter(STATENAME=="New Jersey") %>%
+            mutate(DISTRICT = as.character(DISTRICT)) %>%
+            select(DISTRICT)
+```
 
 ```{r}
+trump_nj <- tibble(DISTRICT=as.character(1:12),
+                   `Trump Vote`=c(36.1, 50.6, 51.4, 55.8, 
+                                    48.8, 40.6, 47.5, 21.5,
+                                    33.1, 12.8, 48.8, 31.8))
+cd114_nj <- cd114_nj %>% left_join(trump_nj, by="DISTRICT")
+cd114_nj
+```
+
+```{r}
+register_google(key = "AIzaSyCwJecsr4zcXGCcytrIV3sWSmwk0lIjonY")
+
+```
+
+```{r}
+dm <- get_map(location="New Jersey",zoom=8)
+
+```
+
+### Map
+
+```{r}
+ggmap(dm) + 
+  geom_sf(data=cd114_nj,aes(fill=`Trump Vote`),inherit.aes=FALSE,alpha=0.9) + 
+  scale_fill_gradient(low = "blue", high = "red", limits=c(20,80)) +
+  theme(axis.title.x=element_blank(),
+        axis.text.x=element_blank(),
+        axis.ticks.x=element_blank(),
+        axis.title.y=element_blank(),
+        axis.text.y=element_blank(),
+        axis.ticks.y=element_blank()) 
+```
+
+## OLD CODE
+
+```{r}
+## 
+districts_shp <-st_read("/Users/hannahsun/Desktop/work/2023_Fall/ECON_SS/District_Mapping/districtShapes/districts097.shp")
+districts_dbf <- st_read("/Users/hannahsun/Desktop/work/2023_Fall/ECON_SS/District_Mapping/districtShapes/districts097.dbf")
+# districts_prj <- st_read("/Users/hannahsun/Desktop/work/2023_Fall/ECON_SS/District_Mapping/districtShapes/districts097.prj")
+districts_shx <- st_read("/Users/hannahsun/Desktop/work/2023_Fall/ECON_SS/District_Mapping/districtShapes/districts097.shx")
+
+```
+
+```{r}
+mapStates = map("state", fill = TRUE, plot = FALSE)
+leaflet(data = mapStates) %>% addTiles() %>%
+  addPolygons(fillColor = topo.colors(10, alpha = NULL), stroke = FALSE)
+```
+```{r}
+# cd114$DISTRICT <- as.numeric(cd114$DISTRICT)
+# cd114$DISTRICTCHAR <- as.character(cd114$DISTRICT)
+# valid_geometries <- st_is_valid(cd114$geometry)
+# spatial_data <- st_make_valid(cd114)
+# st_geometry(spatial_data)[5153]
+
+```
+
+```{r}
+# mapStates = map("state", fill = TRUE, plot = FALSE)
+pal_census <- colorNumeric(palette = "YlOrRd",
+                        domain =  cd114$DISTRICT)
 leaflet() %>%
-  setView(lat = 42.3601, lng = -71.0589, zoom = 10) %>% 
+  setView(lat = 40.0583, lng = -74.4057, zoom = 10) %>% 
   addProviderTiles("CartoDB.Positron") %>%
-  addPolygons(data = districts,
-              # fillColor = ~pal_redlining(holc_grade), 
-              stroke = FALSE,
-              weight = 0.5,
-              fillOpacity = 0.5) 
+  addPolygons(data = cd114,
+              color = "#444444",
+              opacity = 1.0,
+              smoothFactor = 0.5,
+              highlightOptions = highlightOptions(color = "white", weight =2,bringToFront = TRUE),
+              fillColor = ~pal_census(DISTRICT),
+              stroke = TRUE,
+              weight = 1,
+              fillOpacity = 0.5,
+              label = ~DISTRICT,
+              labelOptions = labelOptions(
+                  interactive = FALSE,
+  clickable = FALSE,
+  noHide = TRUE,
+  permanent = TRUE,
+      style = list("font-weight" = "normal", padding = "3px 8px"),
+      textOnly = TRUE
+  )
+) %>% 
+  # addMarkers(
+  #   data = cd114,
+  #   label = ~DISTRICT
+  # ) %>% 
+  
+  # addLabelOnlyMarkers(
+  #   data = newcd114,
+  #   label = ~DISTRICTCHAR,
+  #   labelOptions = labelOptions(noHide = TRUE, direction = "top", textOnly = TRUE)
+  #   
+  # ) %>% 
+
+              # highlightOptions = highlightOptions(color = "white", weight = 2,bringToFront = TRUE)
   # addCircleMarkers(data = districts,
   #                  fillColor = ~pal_tri(total_on_site_emissions),
   #                  stroke = TRUE,
   #                  weight = 0.5,
   #                  radius = 5,
   #                  fillOpacity = 0.5) %>%
-  # addLegend(data = redlining, title = "HOLC Grade", pal = pal_redlining, values=~holc_grade)%>%
+  addLegend(data = cd114, title = "Districts", pal = pal_census, values=~DISTRICT)
   # addLegend(data = tri_facility_on_site_totals_county, title = "Total On site Emissions", pal = pal_tri, values=~total_on_site_emissions)
+```
+
+```{r}
+# mapStates = map("state", fill = TRUE, plot = FALSE)
+pal_census <- colorNumeric(palette = "YlOrRd",
+                        domain =  cd114_nj$DISTRICT)
+leaflet() %>%
+  setView(lat = 40.0583, lng = -74.4057, zoom = 10) %>% 
+  addProviderTiles("CartoDB.Positron") %>%
+  addPolygons(data = cd114_nj,
+              color = "#444444",
+              opacity = 1.0,
+              smoothFactor = 0.5,
+              highlightOptions = highlightOptions(color = "white", weight =2,bringToFront = TRUE),
+              fillColor = ~pal_census(DISTRICT),
+              stroke = TRUE,
+              weight = 1,
+              fillOpacity = 0.5) %>% 
+              # highlightOptions = highlightOptions(color = "white", weight = 2,bringToFront = TRUE)
+  # addCircleMarkers(data = districts,
+  #                  fillColor = ~pal_tri(total_on_site_emissions),
+  #                  stroke = TRUE,
+  #                  weight = 0.5,
+  #                  radius = 5,
+  #                  fillOpacity = 0.5) %>%
+  addLegend(data = cd114_nj, title = "Districts", pal = pal_census, values=~DISTRICT)
+  # addLegend(data = tri_facility_on_site_totals_county, title = "Total On site Emissions", pal = pal_tri, values=~total_on_site_emissions)
+```
+
+```{r}
+ggplot() + 
+    geom_sf(data=cd114_nj,aes(fill=DISTRICT),inherit.aes=FALSE,alpha=0.9) + 
+  scale_fill_gradient(low = "white", high = "black", limits=c(1,12)) +
+  theme_void() +
+  theme(axis.title.x=element_blank(),
+        axis.text.x=element_blank(),
+        axis.ticks.x=element_blank(),
+        axis.title.y=element_blank(),
+        axis.text.y=element_blank(),
+        axis.ticks.y=element_blank()) 
 ```
 
