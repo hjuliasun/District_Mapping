@@ -27,7 +27,7 @@ library(RColorBrewer)  # You need the RColorBrewer library for palettes
 get_congress_map <- function(cong=113) {
   tmp_file <- tempfile()
   tmp_dir  <- tempdir()
-  zp <- sprintf("http://cdmaps.polisci.ucla.edu/shp/districts%03i.zip",cong)
+  zp <- sprintf("https://cdmaps.polisci.ucla.edu/shp/districts097.zip",cong)
   download.file(zp, tmp_file)
   unzip(zipfile = tmp_file, exdir = tmp_dir)
   fpath <- paste(tmp_dir, sprintf("districtShapes/districts%03i.shp",cong), sep = "/")
@@ -37,12 +37,11 @@ get_congress_map <- function(cong=113) {
 
 ```{r}
 cd114 <- get_congress_map(114)
-
 ```
 
 ```{r}
-cd114_nj <- cd114 %>% 
-            filter(STATENAME=="New Jersey") %>%
+cd114_ny <- cd114 %>% 
+            filter(STATENAME=="New York") %>%
             mutate(DISTRICT = as.character(DISTRICT)) %>%
             select(DISTRICT)
 ```
@@ -117,20 +116,20 @@ leaflet() %>%
               opacity = 1.0,
               smoothFactor = 0.5,
               highlightOptions = highlightOptions(color = "white", weight =2,bringToFront = TRUE),
-              fillColor = ~pal_census(DISTRICT),
+              # fillColor = ~pal_census(DISTRICT),
               stroke = TRUE,
               weight = 1,
               fillOpacity = 0.5,
-              label = ~DISTRICT,
-              labelOptions = labelOptions(
-                  interactive = FALSE,
-  clickable = FALSE,
-  noHide = TRUE,
-  permanent = TRUE,
-      style = list("font-weight" = "normal", padding = "3px 8px"),
-      textOnly = TRUE
-  )
-) %>% 
+              label = ~DISTRICT
+  #             labelOptions = labelOptions(
+  #                 interactive = FALSE,
+  # clickable = FALSE,
+  # noHide = TRUE,
+  # permanent = TRUE,
+  #     style = list("font-weight" = "normal", padding = "3px 8px"),
+  #     textOnly = TRUE
+  # )
+)  
   # addMarkers(
   #   data = cd114,
   #   label = ~DISTRICT
@@ -150,7 +149,9 @@ leaflet() %>%
   #                  weight = 0.5,
   #                  radius = 5,
   #                  fillOpacity = 0.5) %>%
-  addLegend(data = cd114, title = "Districts", pal = pal_census, values=~DISTRICT)
+  addLegend(data = cd114, title = "Districts",
+            # pal = pal_census,
+            values=~DISTRICT)
   # addLegend(data = tri_facility_on_site_totals_county, title = "Total On site Emissions", pal = pal_tri, values=~total_on_site_emissions)
 ```
 
