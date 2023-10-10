@@ -10,6 +10,7 @@ date: "2023-09-16"
 # knitr::opts_chunk$set(echo = TRUE)
 
 require(tidyverse)
+library(httr)
 library(leaflet)
 library(tidycensus)
 library(viridis)
@@ -30,14 +31,28 @@ get_congress_map <- function(cong=113) {
   zp <- sprintf("https://cdmaps.polisci.ucla.edu/shp/districts097.zip",cong)
   download.file(zp, tmp_file)
   unzip(zipfile = tmp_file, exdir = tmp_dir)
-  fpath <- paste(tmp_dir, sprintf("districtShapes/districts%03i.shp",cong), sep = "/")
+  fpath <- paste(tmp_dir, sprintf("districtShapes/districts097.shp",cong), sep = "/")
   st_read(fpath)
 }
 ```
 
 ```{r}
-cd114 <- get_congress_map(114)
+cd114_92 <- get_congress_map(114)
+
 ```
+```{r}
+cd114_97 <- get_congress_map(114)
+```
+```{r}
+cd114_102 <- get_congress_map(114)
+cd114_107 <- get_congress_map(114)
+cd114_112 <- get_congress_map(114)
+cd114_92 <- get_congress_map(114)
+cd114_87 <- get_congress_map(114)
+cd114_82 <- get_congress_map(114)
+
+```
+
 
 ```{r}
 cd114_ny <- cd114 %>% 
