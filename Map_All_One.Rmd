@@ -1,0 +1,232 @@
+---
+title: "Mapping All Districts on One Map"
+author:
+- name: Hannah Sun
+  affiliation: Smith College
+date: "`r format(Sys.Date(), '%B %e, %Y')`"
+output:
+  html_document:
+    toc: yes
+    toc_depth: 2
+    toc_float: yes
+    fig_width: 7
+    fig_height: 6
+    fig_caption: yes
+    theme: lumen
+    df_print: paged
+    code_folding: show
+  pdf_document:
+    toc: yes
+    toc_depth: '2'
+---
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+  message = FALSE,
+  echo = TRUE
+)
+
+library(tidyverse)
+library(leaflet)
+library(tidycensus)
+library(viridis)
+library(sf)
+library(knitr)
+library(moderndive)
+library(ggplot2)
+library(ggmap)
+library(maps)
+library(RColorBrewer)  # You need the RColorBrewer library for palettes
+```
+
+# Reading in Files
+
+```{r 82District, include=FALSE}
+get_congress_map_82 <- function(cong=113) {
+  tmp_file <- tempfile()
+  tmp_dir  <- tempdir()
+  zp <- sprintf("https://cdmaps.polisci.ucla.edu/shp/districts082.zip",cong)
+  download.file(zp, tmp_file)
+  unzip(zipfile = tmp_file, exdir = tmp_dir)
+  fpath <- paste(tmp_dir, sprintf("districtShapes/districts082.shp",cong), sep = "/")
+  st_read(fpath)
+}
+```
+```{r 82District-comp, include=FALSE}
+cd114_82 <- get_congress_map_82(114)
+cd114_82$DISTRICT <- as.numeric(cd114_82$DISTRICT)
+
+```
+```{r 87District, include=FALSE}
+get_congress_map_87 <- function(cong=113) {
+  tmp_file <- tempfile()
+  tmp_dir  <- tempdir()
+  zp <- sprintf("https://cdmaps.polisci.ucla.edu/shp/districts087.zip",cong)
+  download.file(zp, tmp_file)
+  unzip(zipfile = tmp_file, exdir = tmp_dir)
+  fpath <- paste(tmp_dir, sprintf("districtShapes/districts087.shp",cong), sep = "/")
+  st_read(fpath)
+}
+```
+```{r 87District-comp, include=FALSE}
+cd114_87 <- get_congress_map_87(114)
+cd114_87$DISTRICT <- as.numeric(cd114_87$DISTRICT)
+
+```
+```{r 92District, include=FALSE}
+get_congress_map_92 <- function(cong=113) {
+  tmp_file <- tempfile()
+  tmp_dir  <- tempdir()
+  zp <- sprintf("https://cdmaps.polisci.ucla.edu/shp/districts092.zip",cong)
+  download.file(zp, tmp_file)
+  unzip(zipfile = tmp_file, exdir = tmp_dir)
+  fpath <- paste(tmp_dir, sprintf("districtShapes/districts092.shp",cong), sep = "/")
+  st_read(fpath)
+}
+```
+```{r 92District-comp, include=FALSE}
+cd114_92 <- get_congress_map_92(114)
+cd114_92$DISTRICT <- as.numeric(cd114_92$DISTRICT)
+
+```
+```{r 97District, include=FALSE}
+get_congress_map_97 <- function(cong=113) {
+  tmp_file <- tempfile()
+  tmp_dir  <- tempdir()
+  zp <- sprintf("https://cdmaps.polisci.ucla.edu/shp/districts097.zip",cong)
+  download.file(zp, tmp_file)
+  unzip(zipfile = tmp_file, exdir = tmp_dir)
+  fpath <- paste(tmp_dir, sprintf("districtShapes/districts097.shp",cong), sep = "/")
+  st_read(fpath)
+}
+```
+```{r 97District-comp, include=FALSE}
+cd114_97 <- get_congress_map_97(114)
+cd114_97$DISTRICT <- as.numeric(cd114_97$DISTRICT)
+
+```
+```{r 102District, include=FALSE}
+get_congress_map_102 <- function(cong=113) {
+  tmp_file <- tempfile()
+  tmp_dir  <- tempdir()
+  zp <- sprintf("https://cdmaps.polisci.ucla.edu/shp/districts102.zip",cong)
+  download.file(zp, tmp_file)
+  unzip(zipfile = tmp_file, exdir = tmp_dir)
+  fpath <- paste(tmp_dir, sprintf("districtShapes/districts102.shp",cong), sep = "/")
+  st_read(fpath)
+}
+```
+```{r 102District-comp, include=FALSE}
+cd114_102 <- get_congress_map_102(114)
+cd114_102$DISTRICT <- as.numeric(cd114_102$DISTRICT)
+
+```
+```{r 107District, include=FALSE}
+get_congress_map_107 <- function(cong=113) {
+  tmp_file <- tempfile()
+  tmp_dir  <- tempdir()
+  zp <- sprintf("https://cdmaps.polisci.ucla.edu/shp/districts107.zip",cong)
+  download.file(zp, tmp_file)
+  unzip(zipfile = tmp_file, exdir = tmp_dir)
+  fpath <- paste(tmp_dir, sprintf("districtShapes/districts107.shp",cong), sep = "/")
+  st_read(fpath)
+}
+```
+```{r 107District-comp, include=FALSE}
+cd114_107 <- get_congress_map_107(114)
+cd114_107$DISTRICT <- as.numeric(cd114_107$DISTRICT)
+
+```
+```{r 112District, include=FALSE}
+get_congress_map_112 <- function(cong=113) {
+  tmp_file <- tempfile()
+  tmp_dir  <- tempdir()
+  zp <- sprintf("https://cdmaps.polisci.ucla.edu/shp/districts112.zip",cong)
+  download.file(zp, tmp_file)
+  unzip(zipfile = tmp_file, exdir = tmp_dir)
+  fpath <- paste(tmp_dir, sprintf("districtShapes/districts112.shp",cong), sep = "/")
+  st_read(fpath)
+}
+```
+```{r 112District-comp, include=FALSE}
+cd114_112 <- get_congress_map_112(114)
+cd114_112$DISTRICT <- as.numeric(cd114_112$DISTRICT)
+
+```
+
+
+## Final Map
+```{r FinalMap, echo=FALSE, warning=FALSE}
+# mapStates = map("state", fill = TRUE, plot = FALSE)
+# pal_census <- colorNumeric(palette = "red",
+#                         domain =  cd114_97$DISTRICT)
+# pal_census2 <- colorNumeric(palette = "blue",
+#                         domain =  cd114_92$DISTRICT)
+leaflet(options = leafletOptions(backgroundColor = "white")) %>%
+  setView(lat = 40.0583, lng = -74.4057, zoom = 10) %>% 
+  addProviderTiles("CartoDB.Positron") %>%
+  addPolygons(data = cd114_97,
+              opacity = 1.0,
+              fillColor = "transparent",
+              smoothFactor = 0.5,
+              color = "red",
+              stroke = TRUE,
+              weight = 1,
+              label = ~DISTRICT) %>% 
+  addPolygons(data = cd114_92,
+              opacity = 1.0,
+              fillColor = "transparent",
+              smoothFactor = 0.5,
+              color = "blue",
+              stroke = TRUE,
+              weight = 1,
+              label = ~DISTRICT) %>% 
+  addPolygons(data = cd114_82,
+              opacity = 1.0,
+              fillColor = "transparent",
+              smoothFactor = 0.5,
+              color = "green",
+              stroke = TRUE,
+              weight = 1,
+              label = ~DISTRICT) %>% 
+    addPolygons(data = cd114_87,
+              opacity = 1.0,
+              fillColor = "transparent",
+              smoothFactor = 0.5,
+              color = "orange",
+              stroke = TRUE,
+              weight = 1,
+              label = ~DISTRICT) %>%
+    addPolygons(data = cd114_102,
+              opacity = 1.0,
+              fillColor = "transparent",
+              smoothFactor = 0.5,
+              color = "black",
+              stroke = TRUE,
+              weight = 1,
+              fillOpacity = 0.5,
+              label = ~DISTRICT) %>%
+    # addPolygons(data = cd114_107,
+    #           opacity = 1.0,
+    #           smoothFactor = 0.5,
+    #           fillColor = "transparent",
+    #           color = "cyan",
+    #           stroke = TRUE,
+    #           weight = 1,
+    #           fillOpacity = 0.5,
+    #           label = ~DISTRICT) %>%
+      # addPolygons(data = cd114_112,
+      #         opacity = 1.0,
+      #         smoothFactor = 0.5,
+      #         fillColor = "transparent",
+      #         color = "purple",
+      #         stroke = TRUE,
+      #         weight = 1,
+      #         fillOpacity = 0.5,
+      #         label = ~DISTRICT) %>%
+
+  addLegend( title = "Districts",
+            colors = c("red", "blue", "green", "orange", "black", "cyan"), 
+            labels = c("97th", "92nd", "82nd", "87th", "102nd", "107th"), 
+            opacity = 0.5)
+ 
+```
