@@ -161,7 +161,7 @@ cd114_112$DISTRICT <- as.numeric(cd114_112$DISTRICT)
 #                         domain =  cd114_97$DISTRICT)
 # pal_census2 <- colorNumeric(palette = "blue",
 #                         domain =  cd114_92$DISTRICT)
-leaflet(options = leafletOptions(backgroundColor = "white")) %>%
+map <-leaflet(options = leafletOptions(backgroundColor = "white")) %>%
   setView(lat = 40.0583, lng = -74.4057, zoom = 10) %>% 
   addProviderTiles("CartoDB.Positron") %>%
   addPolygons(data = cd114_97,
@@ -214,15 +214,15 @@ leaflet(options = leafletOptions(backgroundColor = "white")) %>%
               weight = 1,
               fillOpacity = 0.5,
               label = ~DISTRICT) %>%
-    # addPolygons(data = cd114_112,
-    #         opacity = 1.0,
-    #         smoothFactor = 0.5,
-    #         fillColor = "transparent",
-    #         color = "purple",
-    #         stroke = TRUE,
-    #         weight = 1,
-    #         fillOpacity = 0.5,
-    #         label = ~DISTRICT) %>%
+    addPolygons(data = cd114_112,
+            opacity = 1.0,
+            smoothFactor = 0.5,
+            fillColor = "transparent",
+            color = "purple",
+            stroke = TRUE,
+            weight = 1,
+            fillOpacity = 0.5,
+            label = ~DISTRICT) %>%
 
   addLegend( title = "Districts",
             colors = c("red", "blue", "green", "orange", "black", "cyan", "purple"), 
@@ -230,3 +230,8 @@ leaflet(options = leafletOptions(backgroundColor = "white")) %>%
             opacity = 0.5)
  
 ```
+
+```{r}
+htmlwidgets::saveWidget(map, "mapALL.html", selfcontained = T)
+```
+
